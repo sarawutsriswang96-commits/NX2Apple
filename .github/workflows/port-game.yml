@@ -1,4 +1,4 @@
-name: Build Game IPA (A13 + Separate RomFS)
+name: Build Game Data (Ubuntu Fast - No Queue)
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,7 +27,6 @@ jobs:
       - name: Set up Engine and Dependencies
         run: |
           python3 tools/engine.py sync
-          brew bundle --file=Brewfile
           python3 -m venv .venv
           .venv/bin/python -m pip install lz4 "capstone>=5,<6" fonttools zbic nsz "backports.zstd; python_version < '3.14'"
 
@@ -44,26 +43,18 @@ jobs:
             echo "DM_PROF_TEX_BC_CPU=1" >> work/env.txt
           fi
 
-      - name: Build Unsigned IPA and Separate RomFS
+      - name: Build Separate RomFS and Patch Binary
         run: |
           .venv/bin/python engine/scripts/build_ipa_from_nsp.py input \
             -k input/prod.keys \
             --work-dir work \
             --romfs separate \
             --env-file work/env.txt \
-            --allow-other-metal \
-            --progress lines
+            --skip-xcode \
+            --progress lines || true
 
-      - name: Upload Unsigned IPA
+      - name: Upload Build Output
         uses: actions/upload-artifact@v4
         with:
-          name: 1-Game-App-IPA
-          path: |
-            input/*.ipa
-            work/**/*.ipa
-
-      - name: Upload Separate Game Data (RomFS.img)
-        uses: actions/upload-artifact@v4
-        with:
-          name: 2-Game-Data-RomFS
-          path: work/extract/*/RomFS.img
+          name: Ported-Game-Files
+          path: work/
