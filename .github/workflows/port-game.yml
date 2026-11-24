@@ -19,17 +19,17 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-13
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Engine and Dependencies
+      - name: Set up Python 3.12 & Dependencies
         run: |
-          python3 tools/engine.py sync
-          brew bundle --file=Brewfile
-          python3 -m venv .venv
-          .venv/bin/python -m pip install lz4 "capstone>=5,<6" fonttools zbic nsz "backports.zstd; python_version < '3.14'"
+          brew install python@3.12 xcodegen
+          python3.12 tools/engine.py sync
+          python3.12 -m venv .venv
+          .venv/bin/python -m pip install lz4 "capstone>=5,<6" fonttools zbic nsz backports.zstd
 
       - name: Download and Verify Files
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Collect IPA and Game Data
         run: |
-          find . -maxdepth 4 -name "*.ipa" -exec cp {} out_ipa/ \;
+          find . -maxdepth 5 -name "*.ipa" -exec cp {} out_ipa/ \;
           find work -name "*.img" -exec cp {} out_data/ \;
           ls -lh out_ipa/ out_data/
 
